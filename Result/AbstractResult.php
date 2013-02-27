@@ -1,15 +1,15 @@
 <?php
 
-namespace PHRETS\Result; 
+namespace PHRETS\Result;
 
-use PHRETS\Client\Response; 
+use PHRETS\Client\Response;
 
 abstract class AbstractResult
 {
-    protected $response; 
-    
+    protected $response;
+
     public function __construct(Response $response)
     {
-        $this->response = $response; 
+        $this->response = $response;
     }
 }
