@@ -25,6 +25,22 @@ PHRETS handles the following aspects of RETS communication for you:
 **Manual Download** - The source code for PHRETS is available on [GitHub](http://github.com/troydavisson/PHRETS)
 
 
+## Usage
+
+    $client = new CurlClient(); 
+    $client->connect('http://rets.site.com', 'username', 'password'); 
+
+    $rets = new phRETS($client); 
+
+    $result = $rets->search('Resource', 'Class', '(5=200)', array('Limit' => 10)); 
+
+    foreach($result as $row){
+        foreach($row as $column => $value){
+            // Column names match RETS columns
+
+        }
+    }
+
 ## Contribute
 
 PHRETS is maintained in a public Git repository on GitHub.  Issue submissions and pull requests are encouraged if you run into issues or if you have fixes or changes to contribute.
