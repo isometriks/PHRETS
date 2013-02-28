@@ -23,4 +23,5 @@ interface ResponseInterface
     public function setParts($parts); 
     
     public function hasError(); 
+    public function getError(); 
 }
