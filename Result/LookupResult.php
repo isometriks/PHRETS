@@ -2,7 +2,7 @@
 
 namespace PHRETS\Result;
 
-class LookupResult extends AbstractResult implements \IteratorAggregate
+class LookupResult extends AbstractResult
 {
     protected $lookup; 
     protected $resource; 

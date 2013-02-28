@@ -2,7 +2,7 @@
 
 namespace PHRETS\Result;
 
-class SearchResult extends AbstractResult implements \IteratorAggregate
+class SearchResult extends AbstractResult
 {
     protected $column_names;
     protected $delimiter;
