@@ -3,7 +3,7 @@
 namespace PHRETS\Result;
 
 use PHRETS\Response\ResponseInterface; 
-use PHRETS\Response\XmlResponse;
+use PHRETS\Exception\NonUniqueResultException; 
 
 abstract class AbstractResult implements ResultInterface, \IteratorAggregate, \Countable
 {
@@ -54,7 +54,7 @@ abstract class AbstractResult implements ResultInterface, \IteratorAggregate, \C
     public function getSingleResult()
     {
         if($this->hasMultiple()){
-            throw new \Exception('There is not a single result.'); 
+            throw new NonUniqueResultException('There is not a single result.'); 
         }
         
         return $this->results[0]; 
