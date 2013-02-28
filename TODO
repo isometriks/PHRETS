@@ -1,0 +1,19 @@
+
+ Methods that need implementation:
+
+    - FirewallTest (This doesn't need to be in phRETS.php I don't think..)
+    - getMetadata
+    - getMetadataClasses
+    - getMetadataInfo
+    - getMetadataObjects
+    - getMetadataResources
+    - getMetadataTable
+    - getMetadataTypes
+    - getServerInfo($detail = null)
+
+ Methods Completed:
+
+    - connect / disconnect
+    - search
+    - getObject
+    - getLookupValues / getAllLookupValues
