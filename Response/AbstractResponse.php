@@ -4,11 +4,11 @@ namespace PHRETS\Response;
 
 abstract class AbstractResponse implements ResponseInterface
 {
-    private $body;
-    private $http_code;
-    private $headers;
-    private $multipart; 
-    private $parts;
+    protected $body;
+    protected $http_code;
+    protected $headers;
+    protected $multipart; 
+    protected $parts;
 
     public function __construct($body = null, $headers = null, $http_code = null)
     {
@@ -86,5 +86,15 @@ abstract class AbstractResponse implements ResponseInterface
         }
 
         return $this->headers[$header];
+    }
+    
+    public function hasError()
+    {
+        return false;
+    }
+    
+    public function getError()
+    {
+        return ''; 
     }
 }
