@@ -135,7 +135,6 @@ abstract class AbstractClient implements ClientInterface
 
     public function getCapabilityUrl($capability)
     {
-
         if (!$this->hasCapabilityUrl($capability)) {
             throw new \InvalidArgumentException(sprintf('URL for capability "%s" does not exist', $capability));
         }
@@ -145,7 +144,6 @@ abstract class AbstractClient implements ClientInterface
 
     public function setCapabilityUrl($capability, $url)
     {
-
         if (!in_array($capability, $this->allowed_capabilities)) {
             throw new \InvalidArgumentException(sprintf('Capability "%s" not allowed', $capability));
         }
