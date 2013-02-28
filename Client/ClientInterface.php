@@ -7,6 +7,7 @@ use PHRETS\Client\Response;
 interface ClientInterface
 {    
     public function connect($url, $username, $password, $ua_password = ''); 
+    public function disconnect(); 
     
     /**
      * @return \PHRETS\Response\ResponseInterface Response

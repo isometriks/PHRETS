@@ -41,23 +41,6 @@ class CurlClient extends AbstractClient
 
         \curl_setopt($this->ch, CURLOPT_COOKIEFILE, $this->cookie_file);
 
-
-        /**
-         * Some Defaults
-         */
-        if (!$this->hasHeader('RETS-Version')) {
-            $this->setHeader('RETS-Version', 'RETS/1.5');
-        }
-
-        if (!$this->hasHeader('User-Agent')) {
-            $this->setHeader('User-Agent', 'PHRETS/1.0');
-        }
-
-        if (!$this->hasHeader('Accept') && $this->getHeader('RETS-Version') === 'RETS/1.5') {
-            $this->setHeader('Accept', '*/*');
-        }
-
-
         /**
          * Set HTTP Auth
          */
@@ -76,13 +59,19 @@ class CurlClient extends AbstractClient
 
         /**
          * Try to Login
+         * 
+         * @var \PHRETS\Response\XmlResponse Login Response
          */
         $response = $this->request('Login');
 
-        if (!$response) {
-            throw new \Exception('Could not log in');
+        if ($response->hasError()) {
+            throw new \Exception($response->getError());
+            
+        } elseif (!$response instanceof XmlResponse) {
+            throw new \Exception('Login did not return XML: ' . $response->getBody()); 
         }
 
+        $this->connected = true; 
         $capabilities = $response->getRetsResponse();
 
         /**
@@ -90,7 +79,7 @@ class CurlClient extends AbstractClient
          */
         foreach (explode("\n", trim($capabilities)) as $line) {
             list($name, $value) = explode("=", $line, 2);
-
+            
             if (in_array($name, $this->allowed_capabilities)) {
                 $this->setCapabilityUrl($name, $value);
             }
@@ -110,6 +99,29 @@ class CurlClient extends AbstractClient
         return true;
     }
 
+    public function disconnect()
+    {
+        if(!$this->connected){
+            throw new \Exception('Cannot disconnect, not connected'); 
+        }
+        
+        $response = $this->request('Logout');
+        
+        if($response->hasError()){
+            throw new \Exception($response->getError()); 
+        } elseif (!$response instanceof XmlResponse){
+            throw new \Exception('Resopnse did not return XML: ' . $response->getBody()); 
+        }
+        
+        $this->connected = false; 
+        
+        \curl_close($this->ch); 
+        
+        if(file_exists($this->cookie_file)){
+            unlink($this->cookie_file); 
+        }
+    }
+    
     /**
      * @param string $action A capability action. (Login, Logout, GetObject)
      * @param array $parameters Query parameters
