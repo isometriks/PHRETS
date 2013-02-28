@@ -17,6 +17,7 @@ abstract class AbstractClient implements ClientInterface
     protected $session_id;
     protected $request_id = '';
     protected $capability_urls;
+    protected $connected; 
     
     protected $allowed_options = array(
         'cookie_file', 'debug_file', 'debug_mode', 'compression_enabled',
@@ -32,12 +33,14 @@ abstract class AbstractClient implements ClientInterface
 
     public function __construct(array $options = array())
     {
+        $this->connected = false; 
+        
         foreach ($options as $name => $value) {
             $this->setOption($name, $value);
         }
     }
 
-    public function connect($url, $username, $password, $ua_password = '')
+    public function connect($url, $username, $password, $ua_password = null)
     {
         $parts        = parse_url($url);
         $this->host   = $parts['host'];
@@ -51,9 +54,24 @@ abstract class AbstractClient implements ClientInterface
         $this->password    = $password;
         $this->ua_password = $ua_password;
 
-        if (!empty($ua_password)) {
+        if ($ua_password !== null) {
             $this->setOption('force_ua_auth', true);
         }
+        
+        /**
+         * Some Defaults
+         */
+        if (!$this->hasHeader('RETS-Version')) {
+            $this->setHeader('RETS-Version', 'RETS/1.5');
+        }
+
+        if (!$this->hasHeader('User-Agent')) {
+            $this->setHeader('User-Agent', 'PHRETS/1.0');
+        }
+
+        if (!$this->hasHeader('Accept') && $this->getHeader('RETS-Version') === 'RETS/1.5') {
+            $this->setHeader('Accept', '*/*');
+        }        
     }
 
     public function getLastResponse()
