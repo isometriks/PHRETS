@@ -9,6 +9,11 @@ class XmlResponse extends Response
         return $this->getReplyCode() !== 0; 
     }
     
+    public function getError()
+    {
+        return sprintf('(%d) %s', $response->getReplyCode(), $response->getReplyText());
+    }
+    
     public function getReplyCode()
     {
         $body = $this->getBody(); 
