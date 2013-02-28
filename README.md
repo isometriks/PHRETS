@@ -50,10 +50,9 @@ PHRETS handles the following aspects of RETS communication for you:
     /**
      * Get media objects
      */
-
     $result = $rets->getObject('Property', 'Photo', array(
         '3791261'  => '*', 
-        '3867614'  => '*', 
+        '3867614'  => array(1,2,5), 
     )); 
 
     foreach($result as $object){
