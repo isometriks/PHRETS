@@ -10,7 +10,7 @@ abstract class AbstractResult implements ResultInterface, \IteratorAggregate, \C
     protected $response;
     protected $results;
 
-    public function __construct(ResponseInterface $response)
+    public function __construct(ResponseInterface $response = null)
     {
         $this->response = $response;
     }
