@@ -2,7 +2,8 @@
 
 namespace PHRETS\Client;
 
-use PHRETS\Parser\XMLParser;
+use PHRETS\Response\Response;
+use PHRETS\Response\XmlResponse; 
 
 class CurlClient extends AbstractClient
 {
@@ -112,7 +113,7 @@ class CurlClient extends AbstractClient
     /**
      * @param string $action A capability action. (Login, Logout, GetObject)
      * @param array $parameters Query parameters
-     * @return \PHRETS\Client\Response
+     * @return \PHRETS\Response\ResponseInterface
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
@@ -171,14 +172,12 @@ class CurlClient extends AbstractClient
          * Get Headers
          */
         $headers = array();
+        $_this = $this; 
 
-        $callback = function($handle, $call_string) use (&$headers) {
+        $callback = function($handle, $call_string) use (&$headers, $_this) {
 
-                    $trim = trim($call_string);
-
-                    if (strpos($call_string, ':') !== false) {
-                        list($header, $value) = explode(':', $call_string, 2);
-                        $headers[rtrim($header)] = ltrim($value);
+                    if($pair = $_this->parseHeader($call_string)){
+                        $headers[$pair[0]] = $pair[1]; 
                     }
 
                     return strlen($call_string);
@@ -189,15 +188,10 @@ class CurlClient extends AbstractClient
         /**
          * Send Request
          */
-        $xml       = \curl_exec($this->ch);
+        $body      = \curl_exec($this->ch);
         $http_code = \curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-        $root      = @\simplexml_load_string($xml);
-
-        if (!$root) {
-            throw new \Exception('Invalid XML Response.');
-        }
-
-        $response = new Response($root, $http_code, $headers);
+        
+        $response = $this->createResponse($body, $headers, $http_code); 
         $this->setLastResponse($response);
 
         /**
@@ -210,5 +204,74 @@ class CurlClient extends AbstractClient
         }
 
         return $response;
+    }
+    
+    /**
+     * Checks a response for its content type. If it is a multipart, 
+     * then we add sub-responses to the response. If it is XML
+     * then we parse the xml for the body
+     * 
+     * @param type $body
+     * @param type $headers
+     * @param type $http_code
+     * @return \PHRETS\Response\ResponseInterface
+     */
+    private function createResponse($body, $headers, $http_code = null)
+    {
+        $content_type = trim($headers['Content-Type']); 
+        
+        if(strpos($content_type, 'multipart') !== false){
+            
+            $response = new Response(null, $headers, $http_code); 
+            $response->setMultipart(true); 
+            
+            preg_match('/boundary\=\"(.*?)\"/', $content_type, $matches);
+            
+            if(isset($matches[1])){
+                $boundary = $matches[1]; 
+            } else {
+                preg_match('/boundary\=(.*?)(\s|$|\;)/', $content_type, $matches);
+                $boundary = $matches[1]; 
+            }
+            
+            // Strip quotes
+            $boundary = '--' . trim($boundary, '"'); 
+            
+            // Clean body, remove preamble / epilogue
+            $body = rtrim($body, '-');
+            $body = trim($body, "\r\n"); 
+            $body = trim($body, $boundary); 
+            
+            // Split 
+            $parts = explode($boundary, $body); 
+            
+            /**
+             * Add the sub-responses to the main response
+             */
+            foreach($parts as $part){
+                list($raw_headers, $body) = explode("\r\n\r\n", trim($part), 2); 
+                $headers = array(); 
+                
+                foreach(explode("\r\n", $raw_headers) as $string){
+                    if($pair = $this->parseHeader($string)){
+                        $headers[$pair[0]] = $pair[1]; 
+                    }
+                }
+                
+                $response->addPart($this->createResponse($body, $headers, $http_code)); 
+            }
+            
+            return $response; 
+        }
+        
+        if($content_type === 'text/xml'){
+            $xml = @\simplexml_load_string($body); 
+            
+            $response = new XmlResponse($xml, $headers, $http_code); 
+        } else {
+            $response = new Response($body, $headers, $http_code); 
+        }
+        
+        return $response; 
     }
 }
