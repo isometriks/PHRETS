@@ -2,7 +2,7 @@
 
 namespace PHRETS\Result;
 
-class SearchResult extends AbstractResult
+class SearchResult extends Result
 {
     protected $column_names;
     protected $delimiter;

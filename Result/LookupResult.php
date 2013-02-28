@@ -2,7 +2,7 @@
 
 namespace PHRETS\Result;
 
-class LookupResult extends AbstractResult
+class LookupResult extends Result
 {
     protected $lookup; 
     protected $resource; 
