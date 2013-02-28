@@ -32,7 +32,13 @@ PHRETS handles the following aspects of RETS communication for you:
 
     $rets = new phRETS($client); 
 
+    /**
+     * Running a search
+     */
     $result = $rets->search('Resource', 'Class', '(5=200)', array('Limit' => 10)); 
+
+    $columns = $result->getColumnNames(); 
+    $results = $result->getResults(); 
 
     foreach($result as $row){
         foreach($row as $column => $value){
@@ -40,6 +46,42 @@ PHRETS handles the following aspects of RETS communication for you:
 
         }
     }
+
+    /**
+     * Get media objects
+     */
+
+    $result = $rets->getObject('Property', 'Photo', array(
+        '3791261'  => '*', 
+        '3867614'  => '*', 
+    )); 
+
+    foreach($result as $object){
+        if($object instanceof \PHRETS\Result\Object){
+
+            $dir = __DIR__ . '/' . $object->getContentId(); 
+
+            if(!is_dir($dir)){
+                mkdir($dir); 
+            }
+
+            $object->write($dir);
+
+        } else {
+            echo 'Error: ' . $object->getError() . "\n"; 
+        }
+    }
+
+    /**
+     * Get Single Object
+     */
+    $result = $rets->getObject('Property', 'Photo', array(
+        '12345' => 1,
+    )); 
+
+    $object = $result->getSingleResult(); 
+    $object->write(__DIR__); 
+     
 
 ## Contribute
 
