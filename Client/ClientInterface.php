@@ -9,7 +9,7 @@ interface ClientInterface
     public function connect($url, $username, $password, $ua_password = ''); 
     
     /**
-     * @return \PHRETS\Client\Response Response
+     * @return \PHRETS\Response\ResponseInterface Response
      */
     public function request($action, array $parameters = array());
     
@@ -18,6 +18,8 @@ interface ClientInterface
     public function getHeaders(); 
     public function setHeader($name, $value); 
     public function removeHeader($name); 
+    
+    public function parseHeader($string); 
     
     public function hasOption($name); 
     public function setOption($name, $value); 
@@ -29,7 +31,7 @@ interface ClientInterface
     /**
      * If available, returns the last response
      * 
-     * @return \PHRETS\Client\Response $response
+     * @return \PHRETS\Response\ResponseInterface $response
      */
     public function getLastResponse(); 
     public function setLastResponse($response);
