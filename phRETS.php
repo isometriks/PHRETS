@@ -3,7 +3,10 @@
 namespace PHRETS;
 
 use PHRETS\Client\ClientInterface;
+use PHRETS\Result\Result; 
 use PHRETS\Result\SearchResult;
+use PHRETS\Result\Object;
+use PHRETS\Response\XmlResponse; 
 
 class phRETS
 {
@@ -40,28 +43,59 @@ class phRETS
 
         $result = new SearchResult($response);
 
-        if ($response->getDelimiter()) {
-            $char         = chr($response->getDelimiter());
-            $columns      = trim($response->getColumns(), $char);
-            $column_names = explode($char, $columns);
+        $body         = $response->getBody(); 
+        $delimiter    = isset($body->DELIMITER) ? (string)$body->DELIMITER->attributes()->value : 9; 
+        
+        $char         = chr($delimiter);
+        $columns      = trim($body->COLUMNS[0], $char);
+        $column_names = str_getcsv($columns, $char);
 
-            $result->setColumnNames($column_names);
+        $result->setColumnNames($column_names);
 
-            $results = array();
-            foreach ($response->getData() as $row) {
-                $row       = trim($row, $char);
-                $results[] = array_combine($column_names, str_getcsv($row, $char));
-            }
-
-            $result->setResults($results);
+        $results = array();
+        foreach ($body->DATA as $row) {
+            $row       = trim($row, $char);
+            $results[] = array_combine($column_names, str_getcsv($row, $char));
         }
+
+        $result->setResults($results);
 
         return $result;
     }
 
-    public function getObject($resource, $type, $id, $number = '*', $location = 0)
+    public function getObject($resource, $type, $id, $location = 0)
     {
-        $number = str_replace(',', ':', $number);
-        $number = str_replace(' ', '', $number);
+        $properties = array(); 
+        
+        foreach($id as $property => $num){
+            if(is_array($num)){
+                $properties[] .= $property.':'.implode(':', $num); 
+            } else {
+                $properties[] .= $property.':'.$num; 
+            }
+        }
+        
+        $id_string = implode(',', $properties); 
+        
+        $params = array(
+            'Resource' => $resource, 
+            'Type' => $type, 
+            'ID' => $id_string, 
+            'Location' => $location, 
+        ); 
+        
+        $response = $this->client->request('GetObject', $params, true); 
+        $result   = new Result($response);
+        $results  = $response->isMultipart() ? $response->getParts() : array($response); 
+   
+        foreach($results as $part){
+            if($part instanceof XmlResponse){
+                $result->addResult(new Result($part)); 
+            } else {
+                $result->addResult(new Object($part)); 
+            }
+        }
+        
+        return $result; 
     }
 }
