@@ -5,8 +5,10 @@ namespace PHRETS;
 use PHRETS\Client\ClientInterface;
 use PHRETS\Result\Result; 
 use PHRETS\Result\SearchResult;
+use PHRETS\Result\LookupResult; 
 use PHRETS\Result\Object;
 use PHRETS\Response\XmlResponse; 
+
 
 class phRETS
 {
@@ -58,11 +60,22 @@ class phRETS
             $results[] = array_combine($column_names, str_getcsv($row, $char));
         }
 
+        // Have to use setResults so the keys stay
         $result->setResults($results);
 
         return $result;
     }
 
+    
+    /**
+     * Gets a media object
+     * 
+     * @param string $resource
+     * @param string $type
+     * @param array $id
+     * @param int $location
+     * @return \PHRETS\Result\Result
+     */
     public function getObject($resource, $type, $id, $location = 0)
     {
         $properties = array(); 
@@ -95,6 +108,53 @@ class phRETS
                 $result->addResult(new Object($part)); 
             }
         }
+        
+        return $result; 
+    }
+    
+    /**
+     * 
+     * @param type $resource
+     * @param type $lookup_name
+     * @return \PHRETS\Result\Result A Result of LookupResults
+     */
+    public function getLookupValues($resource, $lookup_name = '*')
+    {
+        $params = array(
+            'Type'   => 'METADATA-LOOKUP_TYPE', 
+            'ID'     => $resource.':'.$lookup_name, 
+            'Format' => 'STANDARD-XML', 
+        );
+        
+        /**
+         * @var \PHRETS\Response\XmlResponse Metadata Response
+         */
+        $response = $this->client->request('GetMetadata', $params); 
+        $result = new Result($response); 
+        $body = $response->getBody(); 
+        
+        if(isset($body->METADATA, $body->METADATA->{'METADATA-LOOKUP_TYPE'})){
+            $lookups = $body->METADATA->{'METADATA-LOOKUP_TYPE'}; 
+            
+            foreach($lookups as $lookup){
+                $attr = $lookup->attributes();
+                
+                $lookup_result = new LookupResult(null); 
+                $lookup_result->setLookup((string)$attr->Lookup); 
+                $lookup_result->setResource((string)$attr->Resource); 
+                $lookup_result->setDate(new \DateTime($attr->Date));  
+                $lookup_result->setVersion((string)$attr->Version); 
+            
+                if(isset($lookup->LookupType)){
+                    $types = $lookup->LookupType; 
+                } else {
+                    $types = $lookup->Lookup; 
+                }
+                
+                $lookup_result->setResults($types);                 
+                $result->addResult($lookup_result); 
+            }
+        }      
         
         return $result; 
     }
