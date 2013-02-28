@@ -70,13 +70,7 @@ abstract class AbstractResult implements ResultInterface, \IteratorAggregate, \C
      */
     public function getError()
     {
-        $response = $this->getResponse();
-
-        if ($response instanceof XmlResponse) {
-            return sprintf('(%d) %s', $response->getReplyCode(), $response->getReplyText());
-        }
-
-        return '';
+        return $this->getResponse()->getError();
     }
     
     public function getIterator()
