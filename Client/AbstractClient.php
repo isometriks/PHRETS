@@ -162,4 +162,18 @@ abstract class AbstractClient implements ClientInterface
     {
         $this->session_id = $session_id;
     }
+    
+    public function parseHeader($string)
+    {
+        if (strpos($string, ':') !== false) {
+            list($header, $value) = explode(':', $string, 2);
+        
+            return array(
+                rtrim($header), 
+                ltrim($value)
+            ); 
+        }
+        
+        return false; 
+    }
 }
