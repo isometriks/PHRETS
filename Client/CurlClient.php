@@ -134,7 +134,7 @@ class CurlClient extends AbstractClient
     /**
      * @param string $action A capability action. (Login, Logout, GetObject)
      * @param array $parameters Query parameters
-     * @return \PHRETS\Response\ResponseInterface
+     * @return \PHRETS\Response\Response
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
@@ -215,7 +215,7 @@ class CurlClient extends AbstractClient
      * @param type $body
      * @param type $headers
      * @param type $http_code
-     * @return \PHRETS\Response\ResponseInterface
+     * @return \PHRETS\Response\Response
      */
     private function createResponse($body, $headers, $http_code = null)
     {

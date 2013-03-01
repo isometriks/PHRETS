@@ -2,15 +2,13 @@
 
 namespace PHRETS\Client; 
 
-use PHRETS\Client\Response; 
-
 interface ClientInterface
 {    
     public function connect($url, $username, $password, $ua_password = null); 
     public function disconnect(); 
     
     /**
-     * @return \PHRETS\Response\ResponseInterface Response
+     * @return \PHRETS\Response\Response Response
      */
     public function request($action, array $parameters = array());
     public function getRequestUrl($action, array $parameters = array()); 
@@ -36,7 +34,7 @@ interface ClientInterface
     /**
      * If available, returns the last response
      * 
-     * @return \PHRETS\Response\ResponseInterface $response
+     * @return \PHRETS\Response\Response $response
      */
     public function getLastResponse(); 
     public function setLastResponse($response);
