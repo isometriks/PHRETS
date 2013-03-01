@@ -153,6 +153,36 @@ class phRETS
         return $this->parseMetadata($response, 'METADATA-TABLE', 'Field'); 
     }
     
+    public function getMetadataResources($resource)
+    {
+        $params = array(
+            'Type' => 'METADATA-RESOURCE', 
+            'ID' => $resource, 
+            'Format' => 'STANDARD-XML', 
+        );
+        
+        $response = $this->client->request('GetMetadata', $params); 
+        
+        return $this->parseMetadata($response, 'METADATA-RESOURCE', 'Resource'); 
+    }
+    
+    /**
+     * @param type $resource
+     * @return \PHRETS\Result\Result
+     */
+    public function getMetadataClasses($resource)
+    {
+        $params = array(
+            'Type' => 'METADATA-CLASS',
+            'ID' => $id,
+            'Format' => 'STANDARD-XML', 
+        );
+        
+        $response = $this->client->request('GetMetadata', $params); 
+        
+        return $this->parseMetadata($response, 'METADATA-CLASS', 'Class'); 
+    }
+    
     /**
      * Keeping the Metadata requests DRY
      * 
