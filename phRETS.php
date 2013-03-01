@@ -3,12 +3,11 @@
 namespace PHRETS;
 
 use PHRETS\Client\ClientInterface;
-use PHRETS\Result\Result; 
+use PHRETS\Result\Result;
 use PHRETS\Result\SearchResult;
-use PHRETS\Result\MetadataResult; 
+use PHRETS\Result\MetadataResult;
 use PHRETS\Result\Object;
-use PHRETS\Response\XmlResponse; 
-
+use PHRETS\Response\XmlResponse;
 
 class phRETS
 {
@@ -43,11 +42,10 @@ class phRETS
         $params   = array_replace($defaults, $params);
         $response = $this->client->request('Search', $params);
 
-        $result = new SearchResult($response);
+        $result       = new SearchResult($response);
+        $body         = $response->getBody();
+        $delimiter    = isset($body->DELIMITER) ? (string) $body->DELIMITER->attributes()->value : 9;
 
-        $body         = $response->getBody(); 
-        $delimiter    = isset($body->DELIMITER) ? (string)$body->DELIMITER->attributes()->value : 9; 
-        
         $char         = chr($delimiter);
         $columns      = trim($body->COLUMNS[0], $char);
         $column_names = str_getcsv($columns, $char);
@@ -66,7 +64,6 @@ class phRETS
         return $result;
     }
 
-    
     /**
      * Gets a media object
      * 
@@ -78,40 +75,40 @@ class phRETS
      */
     public function getObject($resource, $type, $id, $location = 0)
     {
-        $properties = array(); 
-        
-        foreach($id as $property => $num){
-            if(is_array($num)){
-                $properties[] .= $property.':'.implode(':', $num); 
+        $properties = array();
+
+        foreach ($id as $property => $num) {
+            if (is_array($num)) {
+                $properties[] .= $property . ':' . implode(':', $num);
             } else {
-                $properties[] .= $property.':'.$num; 
+                $properties[] .= $property . ':' . $num;
             }
         }
-        
-        $id_string = implode(',', $properties); 
-        
+
+        $id_string = implode(',', $properties);
+
         $params = array(
-            'Resource' => $resource, 
-            'Type' => $type, 
-            'ID' => $id_string, 
-            'Location' => $location, 
-        ); 
-        
-        $response = $this->client->request('GetObject', $params, true); 
+            'Resource' => $resource,
+            'Type' => $type,
+            'ID' => $id_string,
+            'Location' => $location,
+        );
+
+        $response = $this->client->request('GetObject', $params, true);
         $result   = new Result($response);
-        $results  = $response->isMultipart() ? $response->getParts() : array($response); 
-   
-        foreach($results as $part){
-            if($part instanceof XmlResponse){
-                $result->addResult(new Result($part)); 
+        $results  = $response->isMultipart() ? $response->getParts() : array($response);
+
+        foreach ($results as $part) {
+            if ($part instanceof XmlResponse) {
+                $result->addResult(new Result($part));
             } else {
-                $result->addResult(new Object($part)); 
+                $result->addResult(new Object($part));
             }
         }
-        
-        return $result; 
+
+        return $result;
     }
-    
+
     /**
      * 
      * @param type $resource
@@ -121,20 +118,12 @@ class phRETS
     public function getLookupValues($resource, $lookup_name = '*')
     {
         $params = array(
-            'Type'   => 'METADATA-LOOKUP_TYPE', 
-            'ID'     => $resource.':'.$lookup_name, 
-            'Format' => 'STANDARD-XML', 
+            'ID' => $resource . ':' . $lookup_name,
         );
-        
-        /**
-         * @var \PHRETS\Response\XmlResponse Metadata Response
-         */
-        $response = $this->client->request('GetMetadata', $params); 
-        
-        return $this->parseMetadata($response, 'METADATA-LOOKUP_TYPE', array('LookupType', 'Lookup'));  
+
+        return $this->getMetadata($params, 'METADATA-LOOKUP_TYPE', array('LookupType', 'Lookup'));
     }
-    
-    
+
     /**
      * @param type $resource Resource Name
      * @param mixed $class int, string, or *
@@ -143,29 +132,21 @@ class phRETS
     public function getMetadataTable($resource, $class = '*')
     {
         $params = array(
-            'Type' => 'METADATA-TABLE', 
-            'ID' => $resource.':'.$class, 
-            'Format' => 'STANDARD-XML', 
-        ); 
-        
-        $response = $this->client->request('GetMetadata', $params); 
-        
-        return $this->parseMetadata($response, 'METADATA-TABLE', 'Field'); 
+            'ID' => $resource . ':' . $class,
+        );
+
+        return $this->getMetadata($params, 'METADATA-TABLE', 'Field');
     }
-    
+
     public function getMetadataResources($resource)
     {
         $params = array(
-            'Type' => 'METADATA-RESOURCE', 
-            'ID' => $resource, 
-            'Format' => 'STANDARD-XML', 
+            'ID' => $resource,
         );
-        
-        $response = $this->client->request('GetMetadata', $params); 
-        
-        return $this->parseMetadata($response, 'METADATA-RESOURCE', 'Resource'); 
+
+        return $this->getMetadata($params, 'METADATA-RESOURCE', 'Resource');
     }
-    
+
     /**
      * @param type $resource
      * @return \PHRETS\Result\Result
@@ -173,16 +154,12 @@ class phRETS
     public function getMetadataClasses($resource)
     {
         $params = array(
-            'Type' => 'METADATA-CLASS',
-            'ID' => $id,
-            'Format' => 'STANDARD-XML', 
+            'ID' => $resource,
         );
-        
-        $response = $this->client->request('GetMetadata', $params); 
-        
-        return $this->parseMetadata($response, 'METADATA-CLASS', 'Class'); 
+
+        return $this->getMetadata($params, 'METADATA-CLASS', 'Class');
     }
-    
+
     /**
      * Keeping the Metadata requests DRY
      * 
@@ -191,38 +168,45 @@ class phRETS
      * @param type $node
      * @return \PHRETS\Result\Result
      */
-    private function parseMetadata(XmlResponse $response, $data_node, $node)
+    private function getMetadata($params, $data_node, $node)
     {
-        $result = new Result($response); 
-        $body = $response->getBody(); 
-        
-        if(isset($body->METADATA, $body->METADATA->{$data_node})){
-            $data_node = $body->METADATA->{$data_node}; 
-            
-            foreach($data_node as $data){
+        $defaults = array(
+            'Type' => $data_node,
+            'Format' => 'STANDARD-XML',
+        );
+
+        $params   = array_replace($defaults, $params);
+        $response = $this->client->request('GetMetadata', $params);
+        $result   = new Result($response);
+        $body     = $response->getBody();
+
+        if (isset($body->METADATA, $body->METADATA->{$data_node})) {
+            $data_node = $body->METADATA->{$data_node};
+
+            foreach ($data_node as $data) {
                 $properties = $data->attributes();
-                
-                $metadata_result = new MetadataResult(); 
+
+                $metadata_result = new MetadataResult();
                 $metadata_result->setProperties($properties);
-            
-                if(is_array($node)){
-                    $values = array(); 
-                    
-                    foreach($node as $try_node){
-                        if(isset($data->{$try_node})){
-                            $values = $data->{$try_node}; 
-                            break; 
+
+                if (is_array($node)) {
+                    $values = array();
+
+                    foreach ($node as $try_node) {
+                        if (isset($data->{$try_node})) {
+                            $values = $data->{$try_node};
+                            break;
                         }
                     }
                 } else {
-                    $values = $data->{$node}; 
+                    $values = $data->{$node};
                 }
-                
-                $metadata_result->setResults($values);                 
-                $result->addResult($metadata_result); 
+
+                $metadata_result->setResults($values);
+                $result->addResult($metadata_result);
             }
-        } 
-        
-        return $result; 
+        }
+
+        return $result;
     }
 }
