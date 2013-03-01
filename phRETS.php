@@ -134,7 +134,7 @@ class phRETS
         return $this->getMetadata($params, 'METADATA-TABLE', 'Field');
     }
 
-    public function getMetadataResources($resource)
+    public function getMetadataResources($resource = '*')
     {
         $params = array(
             'ID' => $resource,
@@ -144,16 +144,29 @@ class phRETS
     }
 
     /**
-     * @param type $resource
+     * @param string $resource
      * @return \PHRETS\Result\Result
      */
-    public function getMetadataClasses($resource)
+    public function getMetadataClasses($resource = '*')
     {
         $params = array(
             'ID' => $resource,
         );
 
         return $this->getMetadata($params, 'METADATA-CLASS', 'Class');
+    }
+    
+    /**
+     * @param string $resource
+     * @return \PHRETS\Result\Result
+     */
+    public function getMetadataObjects($resource = '*')
+    {
+        $params = array(
+            'ID' => $resource, 
+        );
+        
+        return $this->getMetadata($params, 'METADATA-OBJECT', 'Object'); 
     }
 
     /**
