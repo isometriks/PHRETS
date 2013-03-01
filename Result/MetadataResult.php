@@ -22,6 +22,12 @@ class MetadataResult extends Result
         parent::addResult((array)$result);
     }
     
+    /**
+     * TODO: Either just set this array, or we need to do isset checks for
+     * some of these properties. They're not on all of the metadata responses
+     * 
+     * @param type $properties
+     */
     public function setProperties($properties)
     {
         $this->setLookup((string)$properties->Lookup); 
