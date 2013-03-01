@@ -26,6 +26,9 @@ interface ClientInterface
     public function setOption($name, $value); 
     public function getOption($name); 
     
+    public function getServerDetail($detail);
+    public function getServerDetails(); 
+    
     public function getSessionId(); 
     public function setSessionId($session_id); 
     
