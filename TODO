@@ -1,15 +1,14 @@
 
+
  Methods that need implementation:
 
-    - FirewallTest (This doesn't need to be in phRETS.php I don't think..)
-    - getMetadata
+    - FirewallTest (This doesn't need to be in phRETS.php I don't think, we can make a special tester)
     - getMetadataClasses
     - getMetadataInfo
     - getMetadataObjects
     - getMetadataResources
-    - getMetadataTable
     - getMetadataTypes
-    - getServerInfo($detail = null)
+    - getServerInfo($detail = null) * Kinda..
 
  Methods Completed:
 
@@ -17,3 +16,14 @@
     - search
     - getObject
     - getLookupValues / getAllLookupValues
+    - getMetadataTable / getMetadata
+
+
+ Other
+
+    - Refactor connecting code, let phRETS send a connect request to the client.
+        same with disconnect, otherwise you'll have to keep track of the client
+        variable the whole time if you want to disconnect / reconnect again. 
+
+
+    
