@@ -3,10 +3,7 @@
  Methods that need implementation:
 
     - FirewallTest (This doesn't need to be in phRETS.php I don't think, we can make a special tester)
-    - getMetadataInfo
-    - getMetadataObjects
-    - getMetadataTypes
-    - getServerInfo($detail = null) * Kinda..
+    - getMetadataTypes (Not sure about this one.. I don't think we need it?)
 
  Methods Completed:
 
@@ -17,6 +14,8 @@
     - getMetadataTable / getMetadata
     - getMetadataClasses
     - getMetadataResources
+    - getServerDetail/s
+    - getMetadataObjects
 
 
  Other
