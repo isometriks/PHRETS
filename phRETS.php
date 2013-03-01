@@ -130,33 +130,16 @@ class phRETS
          * @var \PHRETS\Response\XmlResponse Metadata Response
          */
         $response = $this->client->request('GetMetadata', $params); 
-        $result = new Result($response); 
-        $body = $response->getBody(); 
         
-        if(isset($body->METADATA, $body->METADATA->{'METADATA-LOOKUP_TYPE'})){
-            $lookups = $body->METADATA->{'METADATA-LOOKUP_TYPE'}; 
-            
-            foreach($lookups as $lookup){
-                $properties = $lookup->attributes();
-                
-                $metadata_result = new MetadataResult(); 
-                $metadata_result->setProperties($properties);
-            
-                if(isset($lookup->LookupType)){
-                    $types = $lookup->LookupType; 
-                } else {
-                    $types = $lookup->Lookup; 
-                }
-                
-                $metadata_result->setResults($types);                 
-                $result->addResult($metadata_result); 
-            }
-        }      
-        
-        return $result; 
+        return $this->parseMetadata($response, 'METADATA-LOOKUP_TYPE', array('LookupType', 'Lookup'));  
     }
     
     
+    /**
+     * @param type $resource Resource Name
+     * @param mixed $class int, string, or *
+     * @return type
+     */
     public function getMetadataTable($resource, $class = '*')
     {
         $params = array(
@@ -166,22 +149,49 @@ class phRETS
         ); 
         
         $response = $this->client->request('GetMetadata', $params); 
+        
+        return $this->parseMetadata($response, 'METADATA-TABLE', 'Field'); 
+    }
+    
+    /**
+     * Keeping the Metadata requests DRY
+     * 
+     * @param \PHRETS\Response\XmlResponse $response
+     * @param type $data_node
+     * @param type $node
+     * @return \PHRETS\Result\Result
+     */
+    private function parseMetadata(XmlResponse $response, $data_node, $node)
+    {
         $result = new Result($response); 
         $body = $response->getBody(); 
         
-        if(isset($body->METADATA, $body->METADATA->{'METADATA-TABLE'})){
-            $fields = $body->METADATA->{'METADATA-TABLE'}; 
+        if(isset($body->METADATA, $body->METADATA->{$data_node})){
+            $data_node = $body->METADATA->{$data_node}; 
             
-            foreach($fields as $field){
-                $properties = $field->attributes();
+            foreach($data_node as $data){
+                $properties = $data->attributes();
                 
                 $metadata_result = new MetadataResult(); 
                 $metadata_result->setProperties($properties);
-                $metadata_result->setResults($field->Field); 
-                                 
+            
+                if(is_array($node)){
+                    $values = array(); 
+                    
+                    foreach($node as $try_node){
+                        if(isset($data->{$try_node})){
+                            $values = $data->{$try_node}; 
+                            break; 
+                        }
+                    }
+                } else {
+                    $values = $data->{$node}; 
+                }
+                
+                $metadata_result->setResults($values);                 
                 $result->addResult($metadata_result); 
             }
-        }      
+        } 
         
         return $result; 
     }
