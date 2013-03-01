@@ -224,7 +224,6 @@ class CurlClient extends AbstractClient
         if(strpos($content_type, 'multipart') !== false){
             
             $response = new Response(null, $headers, $http_code); 
-            $response->setMultipart(true); 
             
             preg_match('/boundary\=\"(.*?)\"/', $content_type, $matches);
             
