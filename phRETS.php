@@ -52,14 +52,10 @@ class phRETS
 
         $result->setColumnNames($column_names);
 
-        $results = array();
         foreach ($body->DATA as $row) {
             $row       = trim($row, $char);
-            $results[] = array_combine($column_names, str_getcsv($row, $char));
+            $result->addResult(array_combine($column_names, str_getcsv($row, $char)));
         }
-
-        // Have to use setResults so the keys stay
-        $result->setResults($results);
 
         return $result;
     }
