@@ -172,6 +172,29 @@ abstract class AbstractClient implements ClientInterface
 
         $this->capability_urls[$capability] = $url;
     }
+    
+    public function getRequestUrl($action, array $parameters = array())
+    {
+        /**
+         * Check for very first login before we have capability URLs
+         */
+        if ($action === 'Login' && !$this->hasCapabilityUrl('Login')) {
+            $url = $this->url;
+        } elseif ($this->hasCapabilityUrl($action)) {
+            $url = $this->scheme . '://' . $this->host . ':' . $this->port . $this->getCapabilityUrl($action);
+        } else {
+            throw new \InvalidArgumentException(sprintf('There is no action for "%s"', $action));
+        }
+        
+        /**
+         * Prepare URL
+         */
+        if (count($parameters) > 0) {
+            $url .= '?' . http_build_query($parameters);
+        }        
+
+        return $url; 
+    }
 
     public function getSessionId()
     {

@@ -13,6 +13,7 @@ interface ClientInterface
      * @return \PHRETS\Response\ResponseInterface Response
      */
     public function request($action, array $parameters = array());
+    public function getRequestUrl($action, array $parameters = array()); 
     
     public function hasHeader($name); 
     public function getHeader($name); 
