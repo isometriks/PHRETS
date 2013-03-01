@@ -16,6 +16,8 @@ class Result implements \IteratorAggregate, \Countable
     }
 
     /**
+     * Get the response that generated this result
+     * 
      * @return \PHRETS\Response\Response
      */
     public function getResponse()
@@ -23,11 +25,21 @@ class Result implements \IteratorAggregate, \Countable
         return $this->response;
     }
 
+    /**
+     * Get all results in an array
+     * 
+     * @return array
+     */
     public function getResults()
     {
         return $this->results;
     }
 
+    /**
+     * Add a result to the results array
+     * 
+     * @param mixed $result
+     */
     public function addResult($result)
     {
         $this->results[] = $result;
@@ -46,11 +58,22 @@ class Result implements \IteratorAggregate, \Countable
         }
     }
     
+    /**
+     * Returns whether or not there are multiple results
+     * 
+     * @return boolean
+     */
     public function hasMultiple()
     {
         return isset($this->results[1]); 
     }
     
+    /**
+     * If there is only a single result, return it
+     * 
+     * @return mixed
+     * @throws NonUniqueResultException
+     */
     public function getSingleResult()
     {
         if($this->hasMultiple()){
@@ -60,6 +83,11 @@ class Result implements \IteratorAggregate, \Countable
         return $this->results[0]; 
     }
 
+    /**
+     * Whether or not the result has an error
+     * 
+     * @return boolean
+     */
     public function hasError()
     {
         return $this->response->hasError();
@@ -67,6 +95,8 @@ class Result implements \IteratorAggregate, \Countable
 
     /**
      * Only XML Responses contain errors
+     * 
+     * @return string The error message
      */
     public function getError()
     {
