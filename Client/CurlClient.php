@@ -82,6 +82,8 @@ class CurlClient extends AbstractClient
             
             if (in_array($name, $this->allowed_capabilities)) {
                 $this->setCapabilityUrl($name, $value);
+            } else {
+                $this->setServerDetail($name, $value);
             }
         }
         
@@ -89,7 +91,7 @@ class CurlClient extends AbstractClient
          * Set some server details
          */
         if($response->hasHeader('RETS-Version')){
-            $this->setServerDetail('version', $response->getHeader('RETS-Version')); 
+            $this->setServerDetail('Version', $response->getHeader('RETS-Version')); 
         }
 
         /**
@@ -177,7 +179,7 @@ class CurlClient extends AbstractClient
         /**
          * Prepare Headers
          */
-        $this->setHeader('RETS-Version', $this->getServerDetail('version'));
+        $this->setHeader('RETS-Version', $this->getServerDetail('Version'));
         
         $headers = '';
         foreach ($this->getHeaders() as $name => $value) {

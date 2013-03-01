@@ -20,7 +20,7 @@ abstract class AbstractClient implements ClientInterface
     protected $connected; 
     
     protected $server_details = array(
-        'version' => 'RETS/1.5', 
+        'Version' => 'RETS/1.5', 
     ); 
     
     protected $allowed_options = array(
@@ -66,14 +66,14 @@ abstract class AbstractClient implements ClientInterface
          * Some Defaults
          */
         if ($this->hasHeader('RETS-Version')) {
-            $this->setServerDetail('version', $this->getHeader('RETS-Version')); 
+            $this->setServerDetail('Version', $this->getHeader('RETS-Version')); 
         }
 
         if (!$this->hasHeader('User-Agent')) {
             $this->setHeader('User-Agent', 'PHRETS/1.0');
         }
 
-        if (!$this->hasHeader('Accept') && $this->getServerDetail('version') === 'RETS/1.5') {
+        if (!$this->hasHeader('Accept') && $this->getServerDetail('Version') === 'RETS/1.5') {
             $this->setHeader('Accept', '*/*');
         }        
     }
@@ -201,7 +201,7 @@ abstract class AbstractClient implements ClientInterface
     {
         $ua_sum      = md5($this->getHeader('User-Agent') . ':' . $this->ua_password);
         $session_id  = $this->getOption('use_interealty_ua_auth') ? '' : $this->getSessionId();
-        $ua_dig_resp = md5(trim($ua_sum) . ':' . trim($this->request_id) . ':' . $session_id . ':' . $this->getServerDetail('version'));
+        $ua_dig_resp = md5(trim($ua_sum) . ':' . trim($this->request_id) . ':' . $session_id . ':' . $this->getServerDetail('Version'));
             
         return 'Digest ' . $ua_dig_resp; 
     }
