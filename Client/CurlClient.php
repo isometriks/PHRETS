@@ -84,6 +84,13 @@ class CurlClient extends AbstractClient
                 $this->setCapabilityUrl($name, $value);
             }
         }
+        
+        /**
+         * Set some server details
+         */
+        if($response->hasHeader('RETS-Version')){
+            $this->setServerDetail('version', $response->getHeader('RETS-Version')); 
+        }
 
         /**
          * If Action capability URL is provided, we MUST request it following successful login
@@ -153,14 +160,6 @@ class CurlClient extends AbstractClient
         \curl_setopt($this->ch, CURLOPT_URL, $url);
 
         /**
-         * Prepare Headers
-         */
-        $headers = '';
-        foreach ($this->getHeaders() as $name => $value) {
-            $headers .= $name . ': ' . $value . "\r\n";
-        }
-
-        /**
          * Check for User Agent Auth
          * 
          * I have no idea where $request_id is supposed to come from. It being
@@ -172,12 +171,19 @@ class CurlClient extends AbstractClient
                 throw new \Exception('Forcing User Agent Auth without User Agent');
             }
 
-            $ua_sum      = md5($this->getHeader('User-Agent') . ':' . $this->ua_password);
-            $session_id  = $this->getOption('use_interealty_ua_auth') ? '' : $this->getSessionId();
-            $ua_dig_resp = md5(trim($ua_sum) . ':' . trim($this->request_id) . ':' . $session_id . ':' . $this->getHeader('RETS-Version'));
-            $headers .= 'RETS-UA-Authorization: Digest ' . $ua_dig_resp . "\r\n";
+            $this->setHeader('RETS-UA-Authorization', $this->getAuthDigest());
         }
-
+        
+        /**
+         * Prepare Headers
+         */
+        $this->setHeader('RETS-Version', $this->getServerDetail('version'));
+        
+        $headers = '';
+        foreach ($this->getHeaders() as $name => $value) {
+            $headers .= $name . ': ' . $value . "\r\n";
+        }
+        
         \curl_setopt($this->ch, CURLOPT_HTTPHEADER, array($headers));
 
         /**
