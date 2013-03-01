@@ -2,7 +2,7 @@
 
 namespace PHRETS\Result;
 
-class LookupResult extends Result
+class MetadataResult extends Result
 {
     protected $lookup; 
     protected $resource; 
@@ -20,6 +20,14 @@ class LookupResult extends Result
     public function addResult($result)
     {
         parent::addResult((array)$result);
+    }
+    
+    public function setProperties($properties)
+    {
+        $this->setLookup((string)$properties->Lookup); 
+        $this->setResource((string)$properties->Resource); 
+        $this->setDate(new \DateTime($properties->Date));  
+        $this->setVersion((string)$properties->Version); 
     }
     
     public function getLookup()

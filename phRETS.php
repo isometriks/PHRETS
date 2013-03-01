@@ -5,7 +5,7 @@ namespace PHRETS;
 use PHRETS\Client\ClientInterface;
 use PHRETS\Result\Result; 
 use PHRETS\Result\SearchResult;
-use PHRETS\Result\LookupResult; 
+use PHRETS\Result\MetadataResult; 
 use PHRETS\Result\Object;
 use PHRETS\Response\XmlResponse; 
 
@@ -137,13 +137,10 @@ class phRETS
             $lookups = $body->METADATA->{'METADATA-LOOKUP_TYPE'}; 
             
             foreach($lookups as $lookup){
-                $attr = $lookup->attributes();
+                $properties = $lookup->attributes();
                 
-                $lookup_result = new LookupResult(null); 
-                $lookup_result->setLookup((string)$attr->Lookup); 
-                $lookup_result->setResource((string)$attr->Resource); 
-                $lookup_result->setDate(new \DateTime($attr->Date));  
-                $lookup_result->setVersion((string)$attr->Version); 
+                $metadata_result = new MetadataResult(); 
+                $metadata_result->setProperties($properties);
             
                 if(isset($lookup->LookupType)){
                     $types = $lookup->LookupType; 
@@ -151,8 +148,38 @@ class phRETS
                     $types = $lookup->Lookup; 
                 }
                 
-                $lookup_result->setResults($types);                 
-                $result->addResult($lookup_result); 
+                $metadata_result->setResults($types);                 
+                $result->addResult($metadata_result); 
+            }
+        }      
+        
+        return $result; 
+    }
+    
+    
+    public function getMetadataTable($resource, $class = '*')
+    {
+        $params = array(
+            'Type' => 'METADATA-TABLE', 
+            'ID' => $resource.':'.$class, 
+            'Format' => 'STANDARD-XML', 
+        ); 
+        
+        $response = $this->client->request('GetMetadata', $params); 
+        $result = new Result($response); 
+        $body = $response->getBody(); 
+        
+        if(isset($body->METADATA, $body->METADATA->{'METADATA-TABLE'})){
+            $fields = $body->METADATA->{'METADATA-TABLE'}; 
+            
+            foreach($fields as $field){
+                $properties = $field->attributes();
+                
+                $metadata_result = new MetadataResult(); 
+                $metadata_result->setProperties($properties);
+                $metadata_result->setResults($field->Field); 
+                                 
+                $result->addResult($metadata_result); 
             }
         }      
         
