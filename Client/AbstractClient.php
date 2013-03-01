@@ -19,6 +19,10 @@ abstract class AbstractClient implements ClientInterface
     protected $capability_urls;
     protected $connected; 
     
+    protected $server_details = array(
+        'version' => 'RETS/1.5', 
+    ); 
+    
     protected $allowed_options = array(
         'cookie_file', 'debug_file', 'debug_mode', 'compression_enabled',
         'force_ua_auth', 'disable_follow_location', 'force_basic_auth',
@@ -61,15 +65,15 @@ abstract class AbstractClient implements ClientInterface
         /**
          * Some Defaults
          */
-        if (!$this->hasHeader('RETS-Version')) {
-            $this->setHeader('RETS-Version', 'RETS/1.5');
+        if ($this->hasHeader('RETS-Version')) {
+            $this->setServerDetail('version', $this->getHeader('RETS-Version')); 
         }
 
         if (!$this->hasHeader('User-Agent')) {
             $this->setHeader('User-Agent', 'PHRETS/1.0');
         }
 
-        if (!$this->hasHeader('Accept') && $this->getHeader('RETS-Version') === 'RETS/1.5') {
+        if (!$this->hasHeader('Accept') && $this->getServerDetail('version') === 'RETS/1.5') {
             $this->setHeader('Accept', '*/*');
         }        
     }
@@ -185,11 +189,35 @@ abstract class AbstractClient implements ClientInterface
             list($header, $value) = explode(':', $string, 2);
         
             return array(
-                rtrim($header), 
-                ltrim($value)
+                trim($header), 
+                trim($value),
             ); 
         }
         
         return false; 
+    }
+    
+    protected function getAuthDigest()
+    {
+        $ua_sum      = md5($this->getHeader('User-Agent') . ':' . $this->ua_password);
+        $session_id  = $this->getOption('use_interealty_ua_auth') ? '' : $this->getSessionId();
+        $ua_dig_resp = md5(trim($ua_sum) . ':' . trim($this->request_id) . ':' . $session_id . ':' . $this->getServerDetail('version'));
+            
+        return 'Digest ' . $ua_dig_resp; 
+    }
+    
+    protected function setServerDetail($detail, $value)
+    {
+        $this->server_details[$detail] = $value; 
+    }
+    
+    public function getServerDetail($detail)
+    {
+        return isset($this->server_details[$detail]) ? $this->server_details[$detail] : null;
+    }
+    
+    public function getServerDetails()
+    {
+        return $this->server_details; 
     }
 }
