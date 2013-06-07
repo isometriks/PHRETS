@@ -12,10 +12,12 @@
             "role": "Developer"
         }
     ],
-    "require": {
-        "php": ">=5.2.0"
-    },
+    "target-dir": "PHRETS", 
     "autoload": {
-        "classmap": ["phrets.php"]
+        "psr-0": { "PHRETS": "" }
+    },
+    "require": {
+        "php": ">=5.2.0", 
+        "symfony/event-dispatcher": "2.2.1"
     }
 }

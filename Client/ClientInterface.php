@@ -2,15 +2,24 @@
 
 namespace PHRETS\Client; 
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface; 
+
 interface ClientInterface
 {    
-    public function connect($url, $username, $password, $ua_password = null); 
+    public function connect(); 
     public function disconnect(); 
     
     /**
      * @return \PHRETS\Response\Response Response
      */
     public function request($action, array $parameters = array());
+    
+    /**
+     * Gets the Reguest URL for a certain action
+     * 
+     * @param string $action
+     * @param array $parameters
+     */
     public function getRequestUrl($action, array $parameters = array()); 
     
     public function hasHeader($name); 
@@ -25,6 +34,7 @@ interface ClientInterface
     public function setOption($name, $value); 
     public function getOption($name); 
     
+    public function setServerDetail($detail, $value); 
     public function getServerDetail($detail);
     public function getServerDetails(); 
     
@@ -39,7 +49,12 @@ interface ClientInterface
     public function getLastResponse(); 
     public function setLastResponse($response);
     
+    public function capabilityAllowed($capability); 
     public function hasCapabilityUrl($capability); 
     public function getCapabilityUrl($capability); 
     public function setCapabilityUrl($capability, $url); 
+    
+    
+    public function getEventSubscribers(); 
+    public function addEventSubscriber(EventSubscriberInterface $subscriber); 
 }

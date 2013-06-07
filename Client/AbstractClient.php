@@ -2,6 +2,9 @@
 
 namespace PHRETS\Client;
 
+use Symfony\Component\EventDispatcher\EventSubscriberInterface; 
+use PHRETS\Event\DefaultSubscriber; 
+
 abstract class AbstractClient implements ClientInterface
 {
     protected $headers = array();
@@ -18,6 +21,7 @@ abstract class AbstractClient implements ClientInterface
     protected $request_id = '';
     protected $capability_urls;
     protected $connected; 
+    protected $subscribers; 
     
     protected $server_details = array(
         'Version' => 'RETS/1.5', 
@@ -35,16 +39,7 @@ abstract class AbstractClient implements ClientInterface
         'Logout', 'Search', 'GetMetadata', 'ServerInformation', 'Update',
     );
 
-    public function __construct(array $options = array())
-    {
-        $this->connected = false; 
-        
-        foreach ($options as $name => $value) {
-            $this->setOption($name, $value);
-        }
-    }
-
-    public function connect($url, $username, $password, $ua_password = null)
+    public function __construct($url, $username, $password, $ua_password = null)
     {
         $parts        = parse_url($url);
         $this->host   = $parts['host'];
@@ -63,19 +58,9 @@ abstract class AbstractClient implements ClientInterface
         }
         
         /**
-         * Some Defaults
+         * Add the default subscriber
          */
-        if ($this->hasHeader('RETS-Version')) {
-            $this->setServerDetail('Version', $this->getHeader('RETS-Version')); 
-        }
-
-        if (!$this->hasHeader('User-Agent')) {
-            $this->setHeader('User-Agent', 'PHRETS/1.0');
-        }
-
-        if (!$this->hasHeader('Accept') && $this->getServerDetail('Version') === 'RETS/1.5') {
-            $this->setHeader('Accept', '*/*');
-        }        
+        $this->addEventSubscriber(new DefaultSubscriber()); 
     }
 
     public function getLastResponse()
@@ -150,6 +135,11 @@ abstract class AbstractClient implements ClientInterface
         return $this->headers;
     }
 
+    public function capabilityAllowed($capability)
+    {
+        return in_array($capability, $this->allowed_capabilities);
+    }
+    
     public function hasCapabilityUrl($capability)
     {
         return isset($this->capability_urls[$capability]);
@@ -229,7 +219,7 @@ abstract class AbstractClient implements ClientInterface
         return 'Digest ' . $ua_dig_resp; 
     }
     
-    protected function setServerDetail($detail, $value)
+    public function setServerDetail($detail, $value)
     {
         $this->server_details[$detail] = $value; 
     }
@@ -243,4 +233,14 @@ abstract class AbstractClient implements ClientInterface
     {
         return $this->server_details; 
     }
+    
+    public function addEventSubscriber(EventSubscriberInterface $subscriber)
+    {
+        $this->subscribers[] = $subscriber;
+    }
+    
+    public function getEventSubscribers()
+    {
+        return $this->subscribers;
+    } 
 }

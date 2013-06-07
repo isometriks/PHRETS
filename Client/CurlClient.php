@@ -4,16 +4,14 @@ namespace PHRETS\Client;
 
 use PHRETS\Response\Response;
 use PHRETS\Response\XmlResponse; 
+use PHRETS\Event\Events; 
 
 class CurlClient extends AbstractClient
 {
     private $ch;
-    private $cookie_file;
 
-    public function connect($url, $username, $password, $ua_password = '')
+    public function connect()
     {
-        parent::connect($url, $username, $password, $ua_password);
-
         /**
          * Prepare cURL
          */
@@ -28,18 +26,7 @@ class CurlClient extends AbstractClient
         ));
 
 
-        /**
-         * Cookie
-         */
-        if ($this->hasOption('cookie_file')) {
-            $this->cookie_file = $this->getOption('cookie_file');
-        } else {
-            $this->cookie_file = tempnam('', 'phrets');
-        }
-
-        touch($this->cookie_file);
-
-        \curl_setopt($this->ch, CURLOPT_COOKIEFILE, $this->cookie_file);
+        \curl_setopt($this->ch, CURLOPT_COOKIEFILE, $this->getOption('cookie_file'));
 
         /**
          * Set HTTP Auth
@@ -59,61 +46,13 @@ class CurlClient extends AbstractClient
 
         /**
          * Try to Login
-         * 
-         * @var \PHRETS\Response\XmlResponse Login Response
          */
-        $response = $this->request('Login');
-
-        if ($response->hasError()) {
-            throw new \Exception($response->getError());
-            
-        } elseif (!$response instanceof XmlResponse) {
-            throw new \Exception('Login did not return XML: ' . $response->getBody()); 
-        }
-
-        $this->connected = true; 
-        $capabilities = $response->getRetsResponse();
-
-        /**
-         * Get the Capability URLs
-         */
-        foreach (explode("\n", trim($capabilities)) as $line) {
-            list($name, $value) = explode("=", $line, 2);
-            
-            if (in_array($name, $this->allowed_capabilities)) {
-                $this->setCapabilityUrl($name, $value);
-            } else {
-                $this->setServerDetail($name, $value);
-            }
-        }
-        
-        /**
-         * Set some server details
-         */
-        if($response->hasHeader('RETS-Version')){
-            $this->setServerDetail('Version', $response->getHeader('RETS-Version')); 
-        }
-
-        /**
-         * If Action capability URL is provided, we MUST request it following successful login
-         */
-        if ($this->hasCapabilityUrl('Action')) {
-            $response = $this->request('Action');
-
-            if (!$response) {
-                throw new \Exception('Failed during "Action" request');
-            }
-        }
-
-        return true;
+        return $this->request('Login');
     }
+    
 
     public function disconnect()
-    {
-        if(!$this->connected){
-            throw new \Exception('Cannot disconnect, not connected'); 
-        }
-        
+    {        
         $response = $this->request('Logout');
         
         if($response->hasError()){
@@ -121,8 +60,6 @@ class CurlClient extends AbstractClient
         } elseif (!$response instanceof XmlResponse){
             throw new \Exception('Resopnse did not return XML: ' . $response->getBody()); 
         }
-        
-        $this->connected = false; 
         
         \curl_close($this->ch); 
         
@@ -189,7 +126,7 @@ class CurlClient extends AbstractClient
         /**
          * Send Request
          */
-        $body      = \curl_exec($this->ch);
+        $body = \curl_exec($this->ch);
         $http_code = \curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
         
         $response = $this->createResponse($body, $headers, $http_code); 

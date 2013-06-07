@@ -8,14 +8,80 @@ use PHRETS\Result\SearchResult;
 use PHRETS\Result\MetadataResult;
 use PHRETS\Result\Object;
 use PHRETS\Response\XmlResponse;
+use PHRETS\Event\Events; 
+use PHRETS\Event\Event; 
+
+use Symfony\Component\EventDispatcher\EventDispatcher; 
 
 class phRETS
 {
     private $client;
+    private $dispatcher; 
+    private $connected; 
 
     public function __construct(ClientInterface $client)
     {
         $this->client = $client;
+        $this->dispatcher = new EventDispatcher(); 
+        $this->connected = false; 
+        
+        foreach($this->client->getEventSubscribers() as $subscriber){
+            $this->dispatcher->addSubscriber($subscriber); 
+        }
+    }
+    
+    public function connect()
+    {
+        $event = new Event($this->client); 
+        
+        /**
+         * Dispatch pre-connect event
+         */
+        $this->dispatcher->dispatch(Events::PRE_CONNECT, $event);
+        
+        /**
+         * Connect
+         */
+        $response = $this->client->connect(); 
+        $event->setResponse($response); 
+        
+        /**
+         * Dispatch post-connect event
+         */
+        $this->dispatcher->dispatch(Events::POST_CONNECT, $event); 
+        
+        /**
+         * If we made it, we're connected. 
+         */
+        $this->connected = true; 
+    }
+    
+    /**
+     * Disconnect from the server
+     */
+    public function disconnect()
+    {
+        $event = new Event($this->client);
+        
+        /**
+         * Dispatch pre-disconnect event
+         */
+        $this->dispatcher->dispatch(Events::PRE_DISCONNECT, $event); 
+        
+        /**
+         * Send client the disconnect
+         */
+        $this->client->disconnect(); 
+        
+        /**
+         * Dispatch post-disconnect event
+         */
+        $this->dispatcher->dispatch(Events::POST_DISCONNECT, $event);
+        
+        /**
+         * Made it, disconnected.
+         */
+        $this->connected = false; 
     }
 
     /**
@@ -217,5 +283,12 @@ class phRETS
         }
 
         return $result;
+    }
+    
+    public function getEventSubscribers()
+    {
+        return array(
+            new EventListener\ConnectSubscriber(), 
+        ); 
     }
 }

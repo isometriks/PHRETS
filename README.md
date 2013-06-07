@@ -64,6 +64,8 @@ PHRETS handles the following aspects of RETS communication for you:
                 mkdir($dir); 
             }
 
+            // Writes {content-id}-{object-id}.{extension}
+            // use $object->getFilename() to get the name. 
             $object->write($dir);
 
         } else {
